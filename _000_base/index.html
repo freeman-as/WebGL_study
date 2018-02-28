@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>最小構成のWebGLプログラム</title>
+        <!-- 行列演算ライブラリ -->
+        <!-- <script src="../lib/minMatrix.js"></script> -->
+        <script src="./script.js"></script>
+        <link rel="stylesheet" href="./style.css">
+
+        <script id="vs" type="x-shader/x-vertex">
+            // JavaScript から VBO 経由で送られてきた頂点座標
+            attribute vec3 position;
+            // 頂点シェーダプログラムのエントリポイントとなる関数（名前は必ず main とする）
+            void main(){
+                // 頂点シェーダから出力する頂点の座標
+                gl_Position = vec4(position, 1.0);
+                // 頂点の大きさは頂点シェーダで設定する
+                gl_PointSize = 8.0;
+            }
+        </script>
+        <script id="fs" type="x-shader/x-fragment">
+            // 精度修飾子の宣言（フラグメントシェーダにはほぼ必須で lowp, mediump, highp がある）
+            precision mediump float;
+            // フラグメントシェーダプログラムのエントリポイントとなる関数（名前は必ず main とする）
+            void main(){
+                // シェーダから出力する色（RGBA を 0.0 ～ 1.0 で出力）
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>

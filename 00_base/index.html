@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>最小構成のWebGLプログラム</title>
+        <!-- 行列演算ライブラリ -->
+        <script src="../lib/minMatrix.js"></script>
+        <script src="script.js"></script>
+
+        <script id="vs" type="x-shader/x-vertex">
+            attribute vec3 position;
+            void main(){
+                gl_Position = vec4(position, 1.0);
+            }
+        </script>
+        <script id="fs" type="x-shader/x-fragment">
+            precision mediump float;
+            void main(){
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>
