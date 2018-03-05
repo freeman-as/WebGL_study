@@ -14,7 +14,7 @@
         // canvas element を取得しサイズをウィンドウサイズに設定
         canvas        = document.getElementById('canvas');
         canvasWidth   = window.innerWidth;
-        canvasHeight  = window.InnerHeight;
+        canvasHeight  = window.innerHeight;
         canvas.width  = canvasWidth;
         canvas.height = canvasHeight;
         // webgl コンテキストを初期化
