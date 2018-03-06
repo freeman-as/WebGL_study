@@ -3,11 +3,10 @@
     let canvasWidth;  // canvas の幅
     let canvasHeight; // canvas の高さ
     let gl;           // canvas から取得した WebGL のコンテキスト
-    let ext;          // WebGL の拡張機能を格納する
+    let scenePrg;     // シーン描画用プログラム
     let run;          // WebGL の実行フラグ
     let startTime;    // 描画を開始した際のタイムスタンプ
     let nowTime;      // 描画を開始してからの経過時間
-    let scenePrg;     // シーン描画用プログラム
 
     // ウィンドウのロードが完了したら WebGL 関連の処理をスタートする
     window.addEventListener('load', () => {
@@ -31,6 +30,15 @@
             run = eve.keyCode !== 27;
             console.log(run)
         }, false);
+
+        // canvas初期化用のカラーを設定
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+        // canvas初期化用の深度を設定
+        gl.clearDepth(1.0);
+
+        // canvas初期化
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // シェーダーソースを取得
         let vertexSource = document.getElementById('vs').textContent;
@@ -68,20 +76,17 @@
         // 頂点座標の配列から VBO（Vertex Buffer Object）を生成する
         let VBO = [create_vbo(position)];
 
-        // canvasを黒でクリア
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clearDepth(1.0);
-
         // 未初期化の変数を初期化する
         startTime = Date.now();
         nowTime = 0;
-        run = false; // ※このサンプルはレンダリングをループしないのでフラグを降ろしておく
+        run = false;
 
-        // レンダリングを開始
+        // レンダリング開始
         render();
         function render(){
             // 描画開始からの経過時間（秒単位）
             nowTime = (Date.now() - startTime) / 1000;
+
             // ウィンドウサイズの変更に対応するため canvas のサイズを更新
             canvasWidth   = window.innerWidth;
             canvasHeight  = window.innerHeight;
@@ -97,9 +102,6 @@
             // VBO を有効化する
             set_attribute(VBO, scenePrg.attLocation, scenePrg.attStride)
 
-            // 事前に設定済みの色でクリアする
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
             // minMatrix.js を用いた行列関連処理
             // matIVオブジェクトを生成
             var m = new matIV();
@@ -111,9 +113,11 @@
             var mvpMatrix = m.identity(m.create());
 
             // ビュー座標変換行列
+            // [カメラ座標], [カメラの注視点], [カメラの上方向]
             m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
 
             // プロジェクション座標変換行列
+            // [視野角], [アスペクト比], [near], [far]
             m.perspective(90, canvasWidth / canvasHeight, 0.1, 100, pMatrix);
 
             // 各行列を掛け合わせ座標変換行列を完成させる
