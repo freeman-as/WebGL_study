@@ -83,16 +83,43 @@
             create_vbo(color)
         ];
 
+        // VBO を有効化する
+        set_attribute(VBO, scenePrg.attLocation, scenePrg.attStride)
+
         // canvas初期化用のカラーを設定
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         // canvas初期化用の深度を設定
         gl.clearDepth(1.0);
 
+        // minMatrix.js を用いた行列関連処理
+        // matIVオブジェクトを生成
+        var m = new matIV();
+
+        // 各種行列の生成と初期化
+        var mMatrix = m.identity(m.create());
+        var vMatrix = m.identity(m.create());
+        var pMatrix = m.identity(m.create());
+        var vpMatrix = m.identity(m.create());
+        var mvpMatrix = m.identity(m.create());
+
+        // ビュー座標変換行列
+        // [カメラ座標], [カメラの注視点], [カメラの上方向]
+        m.lookAt([0.0, 0.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
+
+        // プロジェクション座標変換行列
+        // [視野角], [アスペクト比], [near], [far]
+        m.perspective(90, canvasWidth / canvasHeight, 0.1, 100, pMatrix);
+
+        // ビュー×プロジェクション座標変換行列
+        m.multiply(pMatrix, vMatrix, vpMatrix);
+
         // 未初期化の変数を初期化する
         startTime = Date.now();
         nowTime = 0;
-        run = false;
+        run = true;
+
+        let count = 0;
 
         // レンダリング開始
         render();
@@ -105,62 +132,59 @@
             canvasHeight  = window.innerHeight;
             canvas.width  = canvasWidth;
             canvas.height = canvasHeight;
-
             // canvas のサイズとビューポートの大きさを揃える
             gl.viewport(0, 0, canvasWidth, canvasHeight);
 
             // どのプログラムオブジェクトを利用するか設定
             gl.useProgram(scenePrg.program);
 
-            // VBO を有効化する
-            set_attribute(VBO, scenePrg.attLocation, scenePrg.attStride)
-
             // 事前に設定済みの色でクリアする
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            // minMatrix.js を用いた行列関連処理
-            // matIVオブジェクトを生成
-            var m = new matIV();
+            // カウンタをインクリメント
+            count++;
+            if(count > 360)count = 0;
 
-            // 各種行列の生成と初期化
-            var mMatrix = m.identity(m.create());
-            var vMatrix = m.identity(m.create());
-            var pMatrix = m.identity(m.create());
-            var vpMatrix = m.identity(m.create());
-            var mvpMatrix = m.identity(m.create());
+            // カウンタを元にラジアンを算出
+            let rad = (count % 360) * Math.PI / 180;
 
-            // ビュー座標変換行列
-            // [カメラ座標], [カメラの注視点], [カメラの上方向]
-            m.lookAt([0.0, 0.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
+            // モデル1は円の軌跡を描き移動
+            let x = Math.cos(rad);
+            let y = Math.sin(rad);
+            m.identity(mMatrix);
+            m.translate(mMatrix, [x, y + 1.0, 0.0], mMatrix);
 
-            // プロジェクション座標変換行列
-            // [視野角], [アスペクト比], [near], [far]
-            m.perspective(90, canvasWidth / canvasHeight, 0.1, 100, pMatrix);
-
-            // ビュー×プロジェクション座標変換行列
-            m.multiply(pMatrix, vMatrix, vpMatrix);
-
-            // 一つ目のモデルを移動するためのモデル座標変換行列
-            m.translate(mMatrix, [1.5, 0.0, 0.0], mMatrix);
-
-            // モデル×ビュー×プロジェクション(一つ目のモデル)
+            // モデル1のMVP行列
             m.multiply(vpMatrix, mMatrix, mvpMatrix);
 
             // uniformLocationへ座標変換行列を登録
             gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            // モデルの描画
             gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-            // 一つ目のモデルを移動するためのモデル座標変換行列
+            // モデル2はY軸中心に回転
             m.identity(mMatrix);
-            m.translate(mMatrix, [-1.5, 0.0, 0.0], mMatrix);
+            m.translate(mMatrix, [1.0, -1.0, 0.0], mMatrix);
+            m.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
 
-            // モデル×ビュー×プロジェクション(一つ目のモデル)
+            // モデル2のMVP行列
             m.multiply(vpMatrix, mMatrix, mvpMatrix);
 
             // uniformLocationへ座標変換行列を登録
             gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            // モデルの描画
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+            // モデル3は拡大縮小
+            let s = Math.sin(rad) + 1.0;
+            m.identity(mMatrix);
+            m.translate(mMatrix, [-1.0, -1.0, 0.0], mMatrix);
+            m.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
+            m.scale(mMatrix, [s, s, 0.0], mMatrix);
+
+            // モデル3のMVP行列
+            m.multiply(vpMatrix, mMatrix, mvpMatrix);
+
+            // uniformLocationへ座標変換行列を登録
+            gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
             gl.drawArrays(gl.TRIANGLES, 0, 3);
 
             // コンテキストの再描画
