@@ -73,13 +73,20 @@
         let position = [
             0.0, 1.0, 0.0,
             1.0, 0.0, 0.0,
-            -1.0, 0.0, 0.0
+            -1.0, 0.0, 0.0,
+            0.0, -1.0, 0.0
         ];
 
         let color = [
             1.0, 0.0, 0.0, 1.0,
             0.0, 1.0, 0.0, 1.0,
-            0.0, 0.0, 1.0, 1.0
+            0.0, 0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0
+        ]
+
+        let index = [
+            0, 1, 2,
+            1, 2, 3
         ]
 
         // 頂点座標の配列から VBO（Vertex Buffer Object）を生成する
@@ -88,8 +95,10 @@
             create_vbo(color)
         ];
 
+        let IBO = create_ibo(index);
+
         // VBO を有効化する
-        set_attribute(VBO, scenePrg.attLocation, scenePrg.attStride)
+        set_attribute(VBO, scenePrg.attLocation, scenePrg.attStride, IBO);
 
         // minMatrix.js を用いた行列関連処理
         // 行列関連変数の宣言と初期化
@@ -161,7 +170,7 @@
 
             // uniformLocationへ座標変換行列を登録
             gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
             // モデル2はY軸中心に回転
             mat.identity(mMatrix);
@@ -173,7 +182,7 @@
 
             // uniformLocationへ座標変換行列を登録
             gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
             // モデル3は拡大縮小
             let s = Math.sin(rad) + 1.0;
@@ -187,7 +196,7 @@
 
             // uniformLocationへ座標変換行列を登録
             gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
             // コンテキストの再描画
             gl.flush();
@@ -283,11 +292,24 @@
     }
 
     /**
+     * IBO を生成して返す。
+     * @param {Array} data - インデックスデータを格納した配列
+     * @return {WebGLBuffer} IBO
+     */
+    function create_ibo(data){
+        let ibo = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        return ibo;
+    }
+
+    /**
      * IBO を生成して返す。(INT 拡張版)
      * @param {Array} data - インデックスデータを格納した配列
      * @return {WebGLBuffer} IBO
      */
-    function createIboInt(data){
+    function create_ibo_int(data){
         let ibo = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(data), gl.STATIC_DRAW);
