@@ -111,6 +111,9 @@
         // WebGL API 関連の初期設定
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // クリアする色
         gl.clearDepth(1.0);                // クリアする深度
+        gl.enable(gl.CULL_FACE);           // カリングを有効化
+        gl.enable(gl.DEPTH_TEST);           // 深度テストを有効化
+        gl.depthFunc(gl.LEQUAL);           // 深度テストの評価方法
         gl.useProgram(scenePrg.program);   // 利用するプログラムオブジェクトを選択
 
         // カメラ関連のパラメータ
@@ -136,11 +139,16 @@
 
         let count = 0;
 
+        // チェックボックスの参照を取得
+        let
+
         // レンダリング開始
         render();
         function render(){
             // 描画開始からの経過時間（秒単位）
             nowTime = (Date.now() - startTime) / 1000;
+
+            //
 
             // ウィンドウサイズの変更に対応するため canvas のサイズを更新
             canvasWidth   = window.innerWidth;
@@ -163,7 +171,7 @@
             let x = Math.cos(rad);
             let y = Math.sin(rad);
             mat.identity(mMatrix);
-            mat.translate(mMatrix, [x, y + 1.0, 0.0], mMatrix);
+            mat.translate(mMatrix, [x, 0.0, y], mMatrix);
 
             // モデル1のMVP行列
             mat.multiply(vpMatrix, mMatrix, mvpMatrix);
@@ -174,24 +182,9 @@
 
             // モデル2はY軸中心に回転
             mat.identity(mMatrix);
-            mat.translate(mMatrix, [1.0, -1.0, 0.0], mMatrix);
-            mat.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
+            mat.translate(mMatrix, [y, 0.0, x], mMatrix);
 
             // モデル2のMVP行列
-            mat.multiply(vpMatrix, mMatrix, mvpMatrix);
-
-            // uniformLocationへ座標変換行列を登録
-            gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-
-            // モデル3は拡大縮小
-            let s = Math.sin(rad) + 1.0;
-            mat.identity(mMatrix);
-            mat.translate(mMatrix, [-1.0, -1.0, 0.0], mMatrix);
-            mat.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
-            mat.scale(mMatrix, [s, s, 0.0], mMatrix);
-
-            // モデル3のMVP行列
             mat.multiply(vpMatrix, mMatrix, mvpMatrix);
 
             // uniformLocationへ座標変換行列を登録
